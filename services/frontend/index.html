@@ -1,0 +1,104 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Secure Software Delivery Platform">
+    <title>Secure Delivery Platform</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+            background: #0f172a;
+            color: #e2e8f0;
+            font-family: Arial, sans-serif;
+        }
+
+        main {
+            width: 100%;
+            max-width: 620px;
+            padding: 32px;
+            border: 1px solid #334155;
+            border-radius: 16px;
+            background: #1e293b;
+        }
+
+        h1 {
+            margin-top: 0;
+            color: #38bdf8;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 8px 12px;
+            border-radius: 20px;
+            background: #064e3b;
+            color: #a7f3d0;
+            font-size: 14px;
+        }
+
+        dl {
+            display: grid;
+            grid-template-columns: 130px 1fr;
+            gap: 12px;
+        }
+
+        dt {
+            color: #94a3b8;
+        }
+
+        dd {
+            margin: 0;
+            overflow-wrap: anywhere;
+        }
+
+        footer {
+            margin-top: 28px;
+            color: #94a3b8;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <h1>Secure Delivery Platform</h1>
+        <p>A Kubernetes software supply-chain security demonstration.</p>
+
+        <span class="status">Frontend is running</span>
+
+        <h2>Application Details</h2>
+        <dl>
+            <dt>Application</dt>
+            <dd id="app-name">secure-delivery-frontend</dd>
+
+            <dt>Version</dt>
+            <dd id="app-version">1.0.0</dd>
+
+            <dt>Environment</dt>
+            <dd id="app-environment">development</dd>
+        </dl>
+
+        <footer>
+            Built for the SLSA-Compliant Secure Software Delivery Platform.
+        </footer>
+    </main>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+
+        document.getElementById("app-version").textContent =
+            params.get("version") || "1.0.0";
+
+        document.getElementById("app-environment").textContent =
+            params.get("environment") || "development";
+    </script>
+</body>
+</html>

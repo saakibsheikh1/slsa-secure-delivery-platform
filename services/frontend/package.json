@@ -1,0 +1,10 @@
+
+{
+  "name": "secure-delivery-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Static frontend for the secure software delivery platform",
+  "scripts": {
+    "start": "python -m http.server 8080"
+  }
+}

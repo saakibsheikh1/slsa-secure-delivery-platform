@@ -1,0 +1,70 @@
+name: Secure Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build and Generate SBOM
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: api
+            context: ./services/api
+          - service: worker
+            context: ./services/worker
+          - service: frontend
+            context: ./services/frontend
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
+
+      - name: Build image
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
+        with:
+          context: ${{ matrix.context }}
+          push: false
+          tags: secure-delivery-${{ matrix.service }}:${{ github.sha }}
+          outputs: type=docker,dest=/tmp/${{ matrix.service }}.tar
+
+      - name: Generate SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          image: secure-delivery-${{ matrix.service }}:${{ github.sha }}
+          format: spdx-json
+          output-file: sbom-${{ matrix.service }}.spdx.json
+          artifact-name: release-sbom-${{ matrix.service }}
+          upload-artifact: true
+
+      - name: Upload image archive
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: image-${{ matrix.service }}
+          path: /tmp/${{ matrix.service }}.tar
+          if-no-files-found: error
+
+  provenance:
+    name: Generate SLSA Provenance
+    needs: build
+    permissions:
+      actions: read
+      contents: write
+      id-token: write
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@v2.1.0
+    with:
+      image: secure-delivery-platform
+      digest: ${{ github.sha }}
+      registry-username: ""
+    secrets: inherit

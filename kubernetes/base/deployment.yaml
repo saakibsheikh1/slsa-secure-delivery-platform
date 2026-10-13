@@ -28,7 +28,8 @@ spec:
             runAsNonRoot: true
             runAsUser: 10001
             capabilities:
-              drop: ["ALL"]
+              drop:
+                - ALL
 ---
 apiVersion: v1
 kind: Service
@@ -65,7 +66,8 @@ spec:
             runAsNonRoot: true
             runAsUser: 10001
             capabilities:
-              drop: ["ALL"]
+              drop:
+                - ALL
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -90,8 +92,11 @@ spec:
           securityContext:
             allowPrivilegeEscalation: false
             runAsNonRoot: true
+            runAsUser: 101
+            runAsGroup: 101
             capabilities:
-              drop: ["ALL"]
+              drop:
+                - ALL
 ---
 apiVersion: v1
 kind: Service

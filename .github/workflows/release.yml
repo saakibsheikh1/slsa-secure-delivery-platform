@@ -10,9 +10,16 @@ permissions:
   contents: read
 
 jobs:
-  build:
-    name: Build and Generate SBOM
+  build-and-publish:
+    name: Build, Scan, and Publish
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+
     strategy:
       fail-fast: false
       matrix:
@@ -31,40 +38,33 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
 
-      - name: Build image
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.4.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push image
+        id: build
         uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
         with:
           context: ${{ matrix.context }}
-          push: false
-          tags: secure-delivery-${{ matrix.service }}:${{ github.sha }}
-          outputs: type=docker,dest=/tmp/${{ matrix.service }}.tar
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/slsa-secure-delivery-${{ matrix.service }}:${{ github.ref_type == 'tag' && github.ref_name || github.sha }}
 
       - name: Generate SBOM
         uses: anchore/sbom-action@v0
         with:
-          image: secure-delivery-${{ matrix.service }}:${{ github.sha }}
+          image: ghcr.io/${{ github.repository_owner }}/slsa-secure-delivery-${{ matrix.service }}:${{ github.ref_type == 'tag' && github.ref_name || github.sha }}
           format: spdx-json
           output-file: sbom-${{ matrix.service }}.spdx.json
           artifact-name: release-sbom-${{ matrix.service }}
           upload-artifact: true
 
-      - name: Upload image archive
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      - name: Attest image provenance
+        uses: actions/attest-build-provenance@v2
         with:
-          name: image-${{ matrix.service }}
-          path: /tmp/${{ matrix.service }}.tar
-          if-no-files-found: error
-
-  provenance:
-    name: Generate SLSA Provenance
-    needs: build
-    permissions:
-      actions: read
-      contents: write
-      id-token: write
-    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@v2.1.0
-    with:
-      image: secure-delivery-platform
-      digest: ${{ github.sha }}
-      registry-username: ""
-    secrets: inherit
+          subject-name: ghcr.io/${{ github.repository_owner }}/slsa-secure-delivery-${{ matrix.service }}
+          subject-digest: ${{ steps.build.outputs.digest }}
+          push-to-registry: true

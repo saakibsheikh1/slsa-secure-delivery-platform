@@ -1,0 +1,15 @@
+﻿.git
+.github
+.vscode
+.idea
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+__pycache__/
+*.py[cod]
+.terraform/
+*.tfstate
+*.tfstate.*

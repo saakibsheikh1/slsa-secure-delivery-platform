@@ -86,13 +86,13 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: ghcr.io/saakibsheikh1/slsa-secure-delivery-frontend@sha256:1b3cd6f96d80be97e4883403fc32d46708f1f0c6c84fc224568f6099b439b483
+          image: ghcr.io/saakibsheikh1/slsa-secure-delivery-frontend@sha256:578b08f630d92021010d24d212b7b508b5ccc6b3ba30c065c3501773bd7645ed
           ports:
             - containerPort: 8080
           securityContext:
             allowPrivilegeEscalation: false
             runAsNonRoot: true
-            runAsUser: 101
+            runAsUser: 100
             runAsGroup: 101
             capabilities:
               drop:
